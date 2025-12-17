@@ -198,4 +198,5 @@ sudo systemctl status docker
     sudo docker-compose run --rm app import
     ```
 
-Les conteneurs sont lancés avec la commande historique docker-compose (avec un tiret), car c’est celle qui est directement disponible sur l’instance EC2 Ubuntu 24.04
+Les conteneurs sont lancés avec la commande historique docker-compose (avec un tiret), 
+car c’est celle qui est directement disponible sur l’instance EC2 Ubuntu 24.04
