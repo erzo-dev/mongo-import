@@ -1,7 +1,7 @@
 # Migration des données médicales vers MongoDB 
 
 Ce projet automatise la migration, la normalisation et l'importation de données médicales depuis un dataset Kaggle vers une base de données MongoDB. 
-La solution est entièrement conteneurisée pourun déploiement reproductible sur AWS (EC2).
+La solution est entièrement conteneurisée pour un déploiement reproductible sur AWS (EC2).
 
 
 ### Source des données
@@ -32,7 +32,7 @@ cd mongo-import
 Créer un fichier .env à partir du template .env.example 
 
 ```bash
-    cp .env.example ./.env
+cp .env.example ./.env
 ```
 
 ### Configurer les variables d'environements 
@@ -72,15 +72,15 @@ mongo-import/
 │   └─ mongodb_service.py       # Fonctions CRUD de démonstration sur MongoDB
 │
 ├─ settings/
-│   ├─ constants.py             # Constantes applicatives.
+│   └─ constants.py             # Constantes applicatives.
 └─ tests/
-    ├─ test_normalisers.py      # Tests unitaires sur les fonctions de normalisation
+    └─ test_normalisers.py      # Tests unitaires sur les fonctions de normalisation
 ```
 
 
 ## 3. Modèle de données MongoDB
 
-    Chaque ligne du CSV est transformée en document MongoDB
+    Chaque ligne du fichier CSV est transformée en document MongoDB
 ```json
 {
     "_id": "<uuid4>",
@@ -131,8 +131,8 @@ docker compose run --rm app check_mongodb
 ## 5. Import
 
 ### Préparation du Dataset :
-    * Manuel : Déposez-y le fichier manuellement sous ./data_source
-    * Automatique : Si absent, il est téléchargé via l'API Kaggle 
+* Manuel : Déposez-y le fichier manuellement sous ./data_source
+* Automatique : Si absent, il est téléchargé via l'API Kaggle 
 
 ```bash
 # Lancer les tests unitaires 
@@ -163,40 +163,41 @@ sudo apt install -y docker.io
 sudo docker-compose version 
 sudo usermod -aG docker ubuntu
 sudo systemctl status docker
-  ```
+```
 
 ### Installation de l'application :
-   ```bash
-    # Récupérer le projet
-	git clone https://github.com/erzo-dev/mongo-import.git 
+```bash
+# Récupérer le projet
+git clone https://github.com/erzo-dev/mongo-import.git 
 
-	# Aller dans le dossier de travail	
-	cd  mongo-import
-	
-	# Copier le fichier d’exemple pour définir les variables d’environnement 
-	cp .env.example ./.env
+# Aller dans le dossier de travail	
+cd  mongo-import
 
-    # Build et lancement du service MongoDB en mode détaché
-    sudo docker-compose up build -d mongo
+# Copier le fichier d’exemple pour définir les variables d’environnement 
+cp .env.example ./.env
 
-    # Initialisation de la DB(Validateurs, Index, Utilisateurs)
-    sudo docker-compose run --rm mongo_setup
+# Build et lancement du service MongoDB en mode détaché
+sudo docker-compose up build -d mongo
 
-    # Vérifier la connexion à Mongodb
-    sudo docker-compose run --rm app check_mongodb
+# Initialisation de la DB(Validateurs, Index, Utilisateurs)
+sudo docker-compose run --rm mongo_setup
 
-    # Lancer les tests unitaires
-    sudo docker-compose run --rm app tests
-	```
+# Vérifier la connexion à Mongodb
+sudo docker-compose run --rm app check_mongodb
+
+# Lancer les tests unitaires
+sudo docker-compose run --rm app tests
+```
 
 ### Import :
-    ```bash
-    # Analyser le fichier csv
-    sudo docker-compose run --rm app analyze  
 
-    # Importer les données
-    sudo docker-compose run --rm app import
-    ```
+```bash
+# Analyser le fichier csv
+sudo docker-compose run --rm app analyze  
+
+# Importer les données
+sudo docker-compose run --rm app import
+```
 
 Les conteneurs sont lancés avec la commande historique docker-compose (avec un tiret), 
 car c’est celle qui est directement disponible sur l’instance EC2 Ubuntu 24.04
