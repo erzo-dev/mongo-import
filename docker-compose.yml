@@ -1,0 +1,118 @@
+#===========================================================
+# docker-compose.yml – Projet 5 OpenClassRooms :
+# Mis à jour le : 2025-12-03
+#
+#   docker compose up --build
+#   
+# Supprimer les conteneurs précédents
+#  docker compose down
+#
+# Supprime les conteneurs orphelins  
+# docker compose down --remove-orphans
+#
+# Supprimer les volumes
+# docker compose down -v
+#
+# Supprimer les images si besoin (rebuild complet)
+#  docker compose build --no-cache 
+#
+# Pour exécuter tes tests. 
+#    docker-compose run test-runner
+# 
+#===========================================================
+# docker-compose.yml – Projet 5 OpenClassRooms :
+#===========================================================
+
+services:
+  # SERVICE MONGODB
+  mongo:
+    image: mongo:8.2 # Du 17 Sep 2025
+    container_name: mongo_prod
+    restart: unless-stopped
+    environment:
+      # --- SECURITÉ : Utilisateur Root nécessaire pour l'initialisation ---
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      # Pas besoin d'exposer de ports (accès via le réseau interne Docker)
+    # Active l'authenfication  
+    command: ["mongod", "--auth"]
+    volumes:
+      - mongodb_production:/data/db
+      
+  # SERVICE D'INITIALISATION (Crée les utilisateurs via les scripts Shell/JS) et index)
+  mongo_setup:
+    build:
+      context: .
+      dockerfile: Dockerfile.mongo-setup
+    container_name: mongo_initialisation
+    volumes:
+      # Monter le dossier qui contient le wrapper Shell et le template JS
+      - ./mongo-init:/mongo-init
+    depends_on:
+      # Doit attendre que le service 'mongo' ait démarré avant d'essayer de se connecter.
+      mongo:
+        condition: service_started
+    environment:
+      # Passe TOUS les secrets au fichier init_db.sh
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      OWNER_USER: ${OWNER_USER}
+      OWNER_PWD: ${OWNER_PWD}
+      WRITER_USER: ${WRITER_USER}
+      WRITER_PWD: ${WRITER_PWD}
+      READER_USER: ${READER_USER}
+      READER_PWD: ${READER_PWD}
+      
+    # Commande qui exécute le script Shell injecteur
+    command: ["/bin/bash", "/mongo-init/init_db.sh"]
+
+  # SERVICE APPLICATION (Migration: Analyse / import CSV)
+  app:
+    build:
+      context: .
+    image: healthcare-importer
+    container_name: healthcare-app
+    # L'application doit attendre que mongo_setup ait créé l'utilisateur app_writer
+    depends_on:
+      mongo_setup:
+        condition: service_completed_successfully # Doit attendre la fin du setup!
+    environment:
+      # Mise à jour pour utiliser les identifiants de l'utilisateur readWrite sécurisé (app_writer)
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
+      MONGO_USER: ${WRITER_USER}      # Utilisateur créé par mongo_setup
+      MONGO_PASSWORD: ${WRITER_PWD}   # Mot de passe créé par mongo_setup
+      MONGO_COLLECTION_NAME: ${MONGO_COLLECTION_NAME}
+      CSV_PATH: /app/data_source/healthcare_dataset.csv # Ajusté le chemin selon la convention souvent utilisée
+    volumes:
+      - ./.env:/app/.env
+      - ./:/app
+      - ./data_source:/app/data_source
+    entrypoint: ["python", "importer.py"] 
+
+  # SERVICE TESTS UNITAIRES
+  tests:
+    image: healthcare-importer
+    container_name: healthcare-tests
+    # Doit attendre que l'importation soit terminée pour tester les données
+    depends_on:
+      app:
+        condition: service_completed_successfully # Attend la fin de la migration
+    environment:
+      # Se connecte avec l'utilisateur read-only (analytics_reader) pour les tests d'intégrité
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
+      MONGO_USER: ${READER_USER}
+      MONGO_PASSWORD: ${READER_PWD}
+      MONGO_COLLECTION_NAME: ${MONGO_COLLECTION_NAME}
+    volumes:
+      - ./.env:/app/.env
+      - ./tests:/app/tests
+    # Commande pour lancer les tests
+    command: ["python", "importer.py", "tests"] 
+
+volumes:
+  mongodb_production:

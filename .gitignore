@@ -1,0 +1,17 @@
+# Fichiers à ignorer par git
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+anaconda_projects/
+data/
+data_source/
+*.bat
+*.ipynb
+README_Old.md
+*.csv

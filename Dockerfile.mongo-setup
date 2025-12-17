@@ -1,0 +1,17 @@
+# Dockerfile.mongo-setup
+# Lancer les commandes:
+# Construire l'image:  docker compose build mongo_setup
+# Initialiser la DB :  docker compose run mongo_setup
+#
+
+# Utilise l'image mongo qui contient le client 'mongosh'
+FROM mongo:8.2
+
+# Installe 'bash' et 'sed' (nécessaires pour le script shell d'injection de secrets)
+RUN apt-get update && apt-get install -y --no-install-recommends bash sed 
+
+# Le répertoire de travail est la racine (/)
+WORKDIR /
+
+# Note : Le script init_db.sh et le create_users_db.js seront montés en volume
+# via docker-compose.yml, ils ne sont pas copiés ici.

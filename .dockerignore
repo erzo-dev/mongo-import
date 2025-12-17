@@ -1,0 +1,10 @@
+# Pour éviter de tout envoyer dans le build (venv, fichiers temporaires, etc.)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+.ipynb_checkpoints/
+.git/

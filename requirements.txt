@@ -1,0 +1,15 @@
+# ============================================
+# requirements.txt – Projet 5 - Healthcare Data Import
+# Généré le 2025-11-30
+# Python 3.12
+# Utilisé pour l'exécution des scripts & tests dans Docker
+# Environnement : Docker +
+# Auteur Erzo
+# ============================================
+# === Librairies principales ===
+pandas
+pymongo
+python-dotenv>=1.0.0
+kagglehub
+# === Librairies de test ===
+pytest
