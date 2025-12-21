@@ -15,8 +15,11 @@ Il contient des informations sur les patients, les diagnostics, les traitements,
 ### Prérequis : 
 * Windows : Docker Desktop avec support WSL2.
 * Linux Ubuntu: Docker Engine et Docker Compose installés:
-    sudo apt update && sudo apt install -y docker.io docker-compose
-    sudo usermod -aG docker $USER
+```bash
+# Installation de docker Engine et docker compose 
+sudo apt update && sudo apt install -y docker.io docker-compose
+sudo usermod -aG docker $USER
+```    
 * Un compte AWS pour le deployement sur le cloud.
 
 
@@ -29,16 +32,34 @@ git clone https://github.com/erzo-dev/mongo-import.git
 cd mongo-import
 ```
 ### Configuration
-Créer un fichier .env à partir du template .env.example 
+Créer un fichier .env à partir du template .env.example pour définir les variables d'environnement. 
 
 ```bash
 cp .env.example ./.env
 ```
 
-### Configurer les variables d'environements 
-    MONGO_DB_NAME, MONGO_HOST, OWNER_USER, etc
+### Sécurité & authentification MongoDB
+
+Les mots de passe sont définis dans le fichier `.env` et transmis aux scripts
+d’initialisation. 
+
+L’authentification MongoDB est activée dans le conteneur `mongo` (`mongod --auth`).
+Un utilisateur root est créé au démarrage grâce aux variables :
+
+- `MONGO_INITDB_ROOT_USERNAME`
+- `MONGO_INITDB_ROOT_PASSWORD`
+
+Le conteneur `mongo_setup` exécute le script `mongo-init/init_db.sh` qui crée
+les utilisateurs applicatifs et leurs rôles :
+
+| Utilisateur      | Rôle MongoDB            | Utilisation principale                    |
+|------------------|-------------------------|-------------------------------------------|
+| `OWNER_USER`     | `dbOwner` sur la base   | Administration de la base applicative     |
+| `WRITER_USER`    | `readWrite`             | Import des données (conteneur `app`)      |
+| `READER_USER`    | `read`                  | Tests / lecture seule (conteneur `tests`) |
 
 
+Le hachage des mots de passe est géré automatiquement par MongoDB.
 
 ## 2. Structure du projet
 ```text
@@ -148,7 +169,7 @@ docker compose run --rm app import
 docker compose run --rm app crud
 ```
 
-## 6. Deployement sur AWS 
+## 6. Déploiement sur AWS 
 
 ### Préparation de l'instance : 
 * Type d'instance : instance t3.small (2 vCPU, 2 Go RAM) sous Ubuntu Server.
@@ -173,7 +194,7 @@ git clone https://github.com/erzo-dev/mongo-import.git
 # Aller dans le dossier de travail	
 cd  mongo-import
 
-# Copier le fichier d’exemple pour définir les variables d’environnement 
+# Copier le fichier d’exemple et définir les variables d’environnement 
 cp .env.example ./.env
 
 # Build et lancement du service MongoDB en mode détaché
