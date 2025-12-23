@@ -1,27 +1,6 @@
-#===========================================================
-# docker-compose.yml – Projet 5 OpenClassRooms :
-# Mis à jour le : 2025-12-03
-#
-#   docker compose up --build
-#   
-# Supprimer les conteneurs précédents
-#  docker compose down
-#
-# Supprime les conteneurs orphelins  
-# docker compose down --remove-orphans
-#
-# Supprimer les volumes
-# docker compose down -v
-#
-# Supprimer les images si besoin (rebuild complet)
-#  docker compose build --no-cache 
-#
-# Pour exécuter tes tests. 
-#    docker-compose run test-runner
-# 
-#===========================================================
-# docker-compose.yml – Projet 5 OpenClassRooms :
-#===========================================================
+#==============================================================================
+# docker-compose.yml – Projet 5 Migrez des données médicales à l'aide du NoSQL
+#==============================================================================
 
 services:
   # SERVICE MONGODB
