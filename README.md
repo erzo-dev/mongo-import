@@ -139,9 +139,11 @@ mongo-import/
 docker compose down --remove-orphans -v
 
 # Build et lancement du service MongoDB en mode détaché
+# Construit les images nécessaires puis démarre MongoDB en arrière-plan
+# à partir de l’image officielle mongo:8.2, avec un volume persistant.
 docker compose up --build -d mongo
 
-# Initialisation de la DB(Validateurs, Index, Utilisateurs)
+# Initialisation de la DB(Validateurs, Index, Utilisateurs) via le script init_db.sh 
 docker compose run --rm mongo_setup
 
 # Vérifier la connexion à Mongodb
@@ -157,15 +159,24 @@ docker compose run --rm app check_mongodb
 
 ```bash
 # Lancer les tests unitaires 
+# Vérifie le bon fonctionnement des fonctions de service et l'intégrité de la chaîne de traitement.
 docker compose run --rm app tests
 
 # Analyser les données médicales du fichier CSV
+# - contrôle de la structure (colonnes, types)
+# - détection des doublons stricts
+# - détection des incohérences entre colonnes
 docker compose run --rm app analyze
 
 # Lancer l’import
+# - rejoue l'analyse
+# - transforme chaque ligne en document MongoDB structuré
+# - insère les documents par batch en respectant le schéma de validation.
 docker compose run --rm app import
 
 # Tester les fonctions CRUD
+# - démontre quelques opérations de création, lecture, mise à jour et suppression
+#   sur les documents d'hospitalisation.
 docker compose run --rm app crud
 ```
 
